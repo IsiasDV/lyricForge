@@ -1,7 +1,7 @@
 // Editor 3D viewport: Three.js scene for viewing game maps as 3D (objects,
 // models, spawner areas, barriers). Base scene follows src/render/scene.js.
 
-import * as THREE from '../../vendor/three.module.min.js';
+import * as THREE from '../vendor/three.module.min.js';
 import { objectMeshKind } from './objects.js';
 
 export function createEditorViewport3D() {

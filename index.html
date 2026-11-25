@@ -220,7 +220,7 @@
     canvas.addEventListener('mousedown', (e) => { if (e.button === 1) { dragging = 'pan'; } }, { capture: true });
     window.addEventListener('mousemove', (e) => {
       if (dragging === 'pan') {
-        view = panEditorView(view, -e.movementX, -e.movementY);
+        view = panEditorView(view, e.movementX, e.movementY);
         draw();
       }
     });
