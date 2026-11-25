@@ -15,10 +15,12 @@
   `src/editor/map/fill.js` (`fillTiles`).
 - **Run 9.** Implemented roadmap item `2.3b` — select / move objects:
   `src/editor/map/object-move.js` (`moveObject`).
+- **Run 10.** Implemented roadmap item `2.3c1` — camera pan / zoom (pure helpers):
+  `src/editor/camera.js` (`createEditorCamera`, `panCamera`, `zoomCamera`).
 - The code tree (`src/`, later `samples/`, `tests/`) will be added as later
   ROADMAP items are worked.
 
 ## Next run
 
-- Next run should pick the first unchecked item in `ROADMAP.md`: **2.3c Map
-  editor — pan / zoom / grid toggle** (needs canvas + UI).
+- Next run should pick the first unchecked item in `ROADMAP.md`: **2.3c2 Map
+  editor — grid toggle** (needs editor state + UI).

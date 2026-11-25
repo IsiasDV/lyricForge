@@ -10,6 +10,8 @@
 - [x] **2.3a Fill (flood fill)** — `src/editor/map/fill.js`
 - [x] **2.3b Select / move objects** — `src/editor/map/object-move.js`
 - [ ] **2.3c Pan / zoom / grid toggle** — needs canvas + UI (`src/editor/` view layer)
+  - [x] 2.3c1 Camera pan / zoom (pure helpers) — implemented `src/editor/camera.js`
+  - [ ] 2.3c2 Grid toggle (needs editor state + UI)
 
 ## Game mod format
 
