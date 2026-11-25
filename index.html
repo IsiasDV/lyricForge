@@ -46,6 +46,17 @@
       </div>
       <button id="btn-grid" class="danger">Toggle Grid</button>
       <button id="btn-view-3d" class="primary">3D View</button>
+      <h2>Game Map Preview</h2>
+      <select id="game-map-select" style="background:#2a2452; color:#dcd6f7; border:1px solid #443d82; padding:6px 8px; border-radius:4px; font-size:13px; width:100%;">
+        <option value="tutorial">Tutorial</option>
+        <option value="night-of-the-living-void">Night of the Living Void</option>
+        <option value="ungaland">Ungaland</option>
+        <option value="choco-rocklate-gladiator-arena">Choco-Rocklate Gladiator Arena</option>
+        <option value="endless-shot">Endless Shot</option>
+        <option value="forterresso-de-beh">Forterresso de Beh</option>
+        <option value="fearvelations">Fearvelations</option>
+        <option value="dead-behs-arcade">Dead Behs Arcade</option>
+      </select>
       <div class="hint">Click palette to select • click canvas to paint • drag to pan • scroll to zoom</div>
       <div class="status">
         <div>Tile: <b id="status-tile">tiles.floor</b></div>
@@ -78,6 +89,8 @@
     import { createEditorCamera, panCamera, zoomCamera } from './src/editor/camera.js';
     import { createGrid, setGridVisible, setGridCellSize } from './src/editor/grid.js';
     import { createEditorView, panEditorView, zoomAtScreen, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
+    import { collectMapObjects, objectTypes } from './src/editor/objects.js';
+    import { gameMapById, gameMaps } from './src/editor/game-maps.js';
 
     const canvas = document.getElementById('editor');
     const ctx = canvas.getContext('2d');
@@ -288,6 +301,20 @@
     document.getElementById('btn-grid').addEventListener('click', () => {
       view = toggleEditorGrid(view);
       draw();
+    });
+    document.getElementById('game-map-select').addEventListener('change', async () => {
+      const sel = document.getElementById('game-map-select');
+      const gmap = gameMapById(sel.value);
+      const objs = collectMapObjects(gmap);
+      const kinds = objectTypes(gmap);
+      const placedCount = viewport3d ? (viewport3d.placed ? viewport3d.placed.length : 0) : 0;
+      if (!viewport3d) { updateStatus(); return; }
+      viewport3d.clearObjects();
+      for (const o of objs) {
+        const g = viewport3d.addObject(o);
+        if (!g) continue;
+      }
+      document.getElementById('status-zoom').textContent = '3D preview: ' + (viewport3d.placed ? viewport3d.placed.length : 0) + ' obj';
     });
   </script>
   <!-- Non-module fallback: detects if the editor module failed to load entirely. -->
