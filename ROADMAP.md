@@ -9,7 +9,7 @@
 - [x] **2.2 Tile palette, paint / erase** — `src/editor/map/tile-palette.js`
 - [x] **2.3a Fill (flood fill)** — `src/editor/map/fill.js`
 - [x] **2.3b Select / move objects** — `src/editor/map/object-move.js`
-- [ ] **2.3c Pan / zoom / grid toggle** — needs canvas + UI (`src/editor/` view layer)
+- [x] **2.3c Pan / zoom / grid toggle** — needs canvas + UI (`src/editor/` view layer)
   - [x] 2.3c1 Camera pan / zoom (pure helpers) — implemented `src/editor/camera.js`
   - [x] 2.3c2 Grid toggle (pure helpers) — implemented `src/editor/grid.js`
   - [x] 2.3c3 Editor view state (camera + grid) — implemented `src/editor/view.js`
