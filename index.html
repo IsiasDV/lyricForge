@@ -134,13 +134,18 @@
         ctx.strokeStyle = '#2a2452';
         ctx.lineWidth = 1 / cam.zoom;
         ctx.beginPath();
-        const startX = Math.floor(cam.x / cs) * cs;
-        const startY = Math.floor(cam.y / cs) * cs;
-        for (let x = startX; x < cam.x + vw / cam.zoom; x += cs) {
-          ctx.moveTo(x, cam.y); ctx.lineTo(x, cam.y + vh / cam.zoom);
+        // Visible world bounds: screen center ± half the viewport (in world units).
+        const halfW = vw / (2 * cam.zoom);
+        const halfH = vh / (2 * cam.zoom);
+        const left = cam.x - halfW;
+        const right = cam.x + halfW;
+        const top = cam.y - halfH;
+        const bottom = cam.y + halfH;
+        for (let x = Math.floor(left / cs) * cs; x <= right; x += cs) {
+          ctx.moveTo(x, top); ctx.lineTo(x, bottom);
         }
-        for (let y = startY; y < cam.y + vh / cam.zoom; y += cs) {
-          ctx.moveTo(cam.x, y); ctx.lineTo(cam.x + vw / cam.zoom, y);
+        for (let y = Math.floor(top / cs) * cs; y <= bottom; y += cs) {
+          ctx.moveTo(left, y); ctx.lineTo(right, y);
         }
         ctx.stroke();
       }
@@ -288,8 +293,12 @@
           }
         }
         if (viewport3d) {
-          viewport3d.resize(canvas3.clientWidth, canvas3.clientHeight);
-          viewport3d.start();
+          // Defer resize one frame so canvas3.clientWidth/Height are non-zero
+          // after display:block layout flushes.
+          requestAnimationFrame(() => {
+            viewport3d.resize(canvas3.clientWidth, canvas3.clientHeight);
+            viewport3d.start();
+          });
         }
       } else if (viewport3d) {
         viewport3d.stop();

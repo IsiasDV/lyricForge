@@ -16,7 +16,7 @@ const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
   assert.deepEqual(panCamera(cam, 5, -3), { x: 5, y: -3, zoom: 1 });
   assert.equal(zoomCamera(cam, 2).zoom, 2);
   assert.equal(zoomCamera(cam, 100).zoom, 8);
-  assert.equal(zoomCamera(cam, 0.01).zoom, 0.05);
+  assert.equal(zoomCamera(cam, 0.01).zoom, 0.25);
 }
 
 // grid

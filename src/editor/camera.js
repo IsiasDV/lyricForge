@@ -14,7 +14,7 @@ export function panCamera(cam, dx, dy) {
 // zoomCamera scales zoom (clamped) and keeps the world point currently at the
 // viewport center roughly anchored (simple center-anchored zoom).
 export function zoomCamera(cam, factor) {
-  const zoom = Math.min(8, Math.max(0.05, cam.zoom * factor));
+  const zoom = Math.min(8, Math.max(0.25, cam.zoom * factor));
   const worldX = cam.x / cam.zoom;
   const worldY = cam.y / cam.zoom;
   return { x: worldX * zoom, y: worldY * zoom, zoom };
