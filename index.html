@@ -57,7 +57,7 @@
     import { fillTiles } from './src/editor/map/fill.js';
     import { createEditorCamera, panCamera, zoomCamera } from './src/editor/camera.js';
     import { createGrid, setGridVisible, setGridCellSize } from './src/editor/grid.js';
-    import { createEditorView, panEditorView, zoomEditorView, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
+    import { createEditorView, panEditorView, zoomAtScreen, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
 
     const canvas = document.getElementById('editor');
     const ctx = canvas.getContext('2d');
@@ -153,6 +153,8 @@
       });
       paletteEl.appendChild(el);
       if (t.id === selectedTile) { el.classList.add('active'); activeTileEl = el; }
+    });
+
     function worldFromScreen(sx, sy) {
       return screenToWorld(view, sx, sy, canvas.width, canvas.height);
     }
@@ -199,7 +201,7 @@
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const factor = e.deltaY > 0 ? 0.9 : 1.1;
-      view = zoomEditorView(view, e.clientX, e.clientY, factor, canvas.width, canvas.height);
+      view = zoomAtScreen(view, e.clientX, e.clientY, factor, canvas.width, canvas.height);
       draw();
     }, { passive: false });
 
@@ -226,5 +228,3 @@
   </script>
 </body>
 </html>
-
-    });
