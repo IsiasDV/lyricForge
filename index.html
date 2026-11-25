@@ -263,11 +263,14 @@
             viewport3dReady = true;
           } catch (e) {
             console.error('3D viewport unavailable:', e);
+            const errMsg = (e?.message ? String(e.message) : '') + (e?.stack ? ' :: ' + String(e.stack).split('\n')[0] : '');
             viewport3dReady = false;
             viewMode = '2d';
             canvas3.style.display = 'none';
             document.getElementById('editor').style.display = 'block';
-            alert('3D viewport requires Three.js which did not load. Check console.');
+            const overlay = document.getElementById('error-overlay');
+            const pre = document.getElementById('error-message');
+            if (overlay && pre) { pre.textContent = '3D viewport failed to load Three.js:\n' + errMsg; overlay.style.display = 'block'; }
             return;
           }
         }
