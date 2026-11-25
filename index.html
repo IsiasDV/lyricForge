@@ -252,8 +252,11 @@
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
       const factor = e.deltaY > 0 ? 0.9 : 1.1;
-      view = zoomAtScreen(view, e.clientX, e.clientY, factor, canvas.width, canvas.height);
+      view = zoomAtScreen(view, cx, cy, factor, canvas.width, canvas.height);
       draw();
     }, { passive: false });
 
@@ -295,6 +298,23 @@
             const overlay = document.getElementById('error-overlay');
             const pre = document.getElementById('error-message');
             if (overlay && pre) { pre.textContent = '3D viewport failed to load Three.js:\n' + errMsg; overlay.style.display = 'block'; }
+            return;
+          }
+        }
+        if (viewport3dReady && !viewport3d) {
+          // Recreate viewport after it was disposed (e.g. toggled back from 2d).
+          try {
+            const mod = await import('./src/editor/viewport-3d.js');
+            viewport3d = mod.createEditorViewport3D();
+          } catch (e) {
+            viewport3dReady = false;
+            const errMsg = (e?.message ? String(e.message) : '') + (e?.stack ? ' :: ' + String(e.stack).split('\\n')[0] : '');
+            viewMode = '2d';
+            canvas3.style.display = 'none';
+            document.getElementById('editor').style.display = 'block';
+            const overlay = document.getElementById('error-overlay');
+            const pre = document.getElementById('error-message');
+            if (overlay && pre) { pre.textContent = '3D viewport failed to recreate:\\n' + errMsg; overlay.style.display = 'block'; }
             return;
           }
         }
