@@ -11,7 +11,8 @@
 - [x] **2.3b Select / move objects** — `src/editor/map/object-move.js`
 - [ ] **2.3c Pan / zoom / grid toggle** — needs canvas + UI (`src/editor/` view layer)
   - [x] 2.3c1 Camera pan / zoom (pure helpers) — implemented `src/editor/camera.js`
-  - [ ] 2.3c2 Grid toggle (needs editor state + UI)
+  - [x] 2.3c2 Grid toggle (pure helpers) — implemented `src/editor/grid.js`
+  - [ ] 2.3c3 Editor state + UI wiring for camera / grid (needs editor state + canvas)
 
 ## Game mod format
 
