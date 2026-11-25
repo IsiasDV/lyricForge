@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lyric Forge — Map Editor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; background: #0e0822; color: #dcd6f7; font-family: system-ui, sans-serif; overflow: hidden; }
+    #app { display: flex; height: 100%; width: 100%; }
+    #sidebar { width: 260px; background: #1a1432; border-right: 1px solid #332a5c; padding: 12px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    #main { flex: 1; position: relative; background: #0e0822; overflow: hidden; }
+    canvas#editor { display: block; width: 100%; height: 100%; background: #140b26; }
+    h2 { font-size: 14px; color: #b6b0d8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .tile { aspect-ratio: 1; border: 2px solid transparent; border-radius: 4px; cursor: pointer; transition: border-color 0.1s; }
+    .tile.active { border-color: #ffd43b; }
+    button { background: #2a2452; border: 1px solid #443d82; color: #dcd6f7; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    button:hover { background: #3a346c; }
+    button.primary { background: #4c4eef; border-color: #4c4eef; }
+    button.primary:hover { background: #5c5eff; }
+    button.danger { background: #7a2c2c; border-color: #7a2c2c; }
+    button.danger:hover { background: #8a3c3c; }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    .hint { font-size: 11px; color: #6a649d; margin-top: 4px; }
+    .status { margin-top: auto; font-size: 12px; color: #8a84ad; padding-top: 8px; border-top: 1px solid #332a5c; }
+    .status b { color: #dcd6f7; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <h2>Tile Palette</h2>
+      <div class="palette" id="palette"></div>
+      <h2>Map</h2>
+      <div class="row">
+        <button id="btn-new" class="primary">New Map</button>
+        <button id="btn-fill">Fill</button>
+      </div>
+      <button id="btn-grid" class="danger">Toggle Grid</button>
+      <div class="hint">Click palette to select • click canvas to paint • drag to pan • scroll to zoom</div>
+      <div class="status">
+        <div>Tile: <b id="status-tile">tiles.floor</b></div>
+        <div>Grid: <b id="status-grid">on</b></div>
+        <div>Zoom: <b id="status-zoom">1×</b></div>
+      </div>
+    </aside>
+    <main id="main">
+      <canvas id="editor"></canvas>
+    </main>
+  </div>
+  <script type="module">
+
+    import { TILE_PALETTE, getTile, tileLayer, paintTile, eraseTile } from './src/editor/map/tile-palette.js';
+    import { createMap } from './src/editor/map/map.js';
+    import { fillTiles } from './src/editor/map/fill.js';
+    import { createEditorCamera, panCamera, zoomCamera } from './src/editor/camera.js';
+    import { createGrid, setGridVisible, setGridCellSize } from './src/editor/grid.js';
+    import { createEditorView, panEditorView, zoomEditorView, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
+
+    const canvas = document.getElementById('editor');
+    const ctx = canvas.getContext('2d');
+
+    let map = createMap({ id: 'editor', name: 'Editor Map', width: 64, height: 64 });
+    let selectedTile = TILE_PALETTE[3].id;
+    let view = createEditorView();
+    let dragging = false;
+
+    function resize() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function draw() {
+      const vw = canvas.width;
+      const vh = canvas.height;
+      const cam = view.camera;
+      const grid = view.grid;
+
+      ctx.clearRect(0, 0, vw, vh);
+
+      ctx.save();
+      ctx.translate(vw / 2, vh / 2);
+      ctx.scale(cam.zoom, cam.zoom);
+      ctx.translate(-cam.x, -cam.y);
+
+      if (grid.visible) {
+        const cs = grid.cellSize * 40;
+        ctx.strokeStyle = '#2a2452';
+        ctx.lineWidth = 1 / cam.zoom;
+        ctx.beginPath();
+        const startX = Math.floor(cam.x / cs) * cs;
+        const startY = Math.floor(cam.y / cs) * cs;
+        for (let x = startX; x < cam.x + vw / cam.zoom; x += cs) {
+          ctx.moveTo(x, cam.y); ctx.lineTo(x, cam.y + vh / cam.zoom);
+        }
+        for (let y = startY; y < cam.y + vh / cam.zoom; y += cs) {
+          ctx.moveTo(cam.x, y); ctx.lineTo(cam.x + vw / cam.zoom, y);
+        }
+        ctx.stroke();
+      }
+
+      const layer = tileLayer(map, `${map.id}:layer:tile`);
+      if (layer) {
+        ctx.lineWidth = 1 / cam.zoom;
+        ctx.strokeStyle = '#221c44';
+        for (const [key, tileId] of Object.entries(layer.tiles ?? {})) {
+          const [tx, ty] = key.split(',').map(Number);
+          const t = getTile(tileId);
+          if (!t) continue;
+          ctx.fillStyle = t.color;
+          const size = 40;
+          ctx.fillRect(tx * size, ty * size, size, size);
+          ctx.strokeRect(tx * size, ty * size, size, size);
+        }
+      }
+
+      ctx.restore();
+
+      ctx.strokeStyle = '#ffd43b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(vw / 2 - 12, vh / 2); ctx.lineTo(vw / 2 + 12, vh / 2);
+      ctx.moveTo(vw / 2, vh / 2 - 12); ctx.lineTo(vw / 2, vh / 2 + 12);
+      ctx.stroke();
+
+      updateStatus();
+    }
+
+    function updateStatus() {
+      document.getElementById('status-tile').textContent = selectedTile;
+      document.getElementById('status-grid').textContent = view.grid.visible ? 'on' : 'off';
+      document.getElementById('status-zoom').textContent = view.camera.zoom.toFixed(2) + '×';
+    }
+
+    const paletteEl = document.getElementById('palette');
+    let activeTileEl = null;
+    TILE_PALETTE.forEach((t) => {
+      const el = document.createElement('div');
+      el.className = 'tile';
+      el.style.backgroundColor = t.color;
+      el.title = t.name;
+      el.addEventListener('click', () => {
+        selectedTile = t.id;
+        if (activeTileEl) activeTileEl.classList.remove('active');
+        el.classList.add('active');
+        activeTileEl = el;
+        draw();
+      });
+      paletteEl.appendChild(el);
+      if (t.id === selectedTile) { el.classList.add('active'); activeTileEl = el; }
+    function worldFromScreen(sx, sy) {
+      return screenToWorld(view, sx, sy, canvas.width, canvas.height);
+    }
+
+    function tileFromWorld(wx, wy) {
+      return { x: Math.floor(wx / 40), y: Math.floor(wy / 40) };
+    }
+
+    function paintAt(sx, sy) {
+      const w = worldFromScreen(sx, sy);
+      const t = tileFromWorld(w.x, w.y);
+      map = paintTile(map, `${map.id}:layer:tile`, t.x, t.y, selectedTile);
+      draw();
+    }
+
+    function eraseAt(sx, sy) {
+      const w = worldFromScreen(sx, sy);
+      const t = tileFromWorld(w.x, w.y);
+      map = eraseTile(map, `${map.id}:layer:tile`, t.x, t.y);
+      draw();
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { dragging = true; paintAt(e.clientX, e.clientY); }
+      if (e.button === 2) { dragging = true; eraseAt(e.clientX, e.clientY); }
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+    canvas.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      if (e.buttons === 1) paintAt(e.clientX, e.clientY);
+      if (e.buttons === 2) eraseAt(e.clientX, e.clientY);
+    });
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    canvas.addEventListener('mousedown', (e) => { if (e.button === 1) { dragging = 'pan'; } }, { capture: true });
+    window.addEventListener('mousemove', (e) => {
+      if (dragging === 'pan') {
+        view = panEditorView(view, -e.movementX, -e.movementY);
+        draw();
+      }
+    });
+    window.addEventListener('mouseup', (e) => { if (e.button === 1) dragging = false; });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = e.deltaY > 0 ? 0.9 : 1.1;
+      view = zoomEditorView(view, e.clientX, e.clientY, factor, canvas.width, canvas.height);
+      draw();
+    }, { passive: false });
+
+    document.getElementById('btn-new').addEventListener('click', () => {
+      map = createMap({ id: 'editor', name: 'Editor Map', width: 64, height: 64 });
+      view = createEditorView();
+      draw();
+    });
+    document.getElementById('btn-fill').addEventListener('click', () => {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const w = worldFromScreen(cx, cy);
+      const t = tileFromWorld(w.x, w.y);
+      const layer = tileLayer(map, `${map.id}:layer:tile`);
+      const from = layer?.tiles?.[`${t.x},${t.y}`];
+      if (!from) return;
+      map = fillTiles(map, `${map.id}:layer:tile`, t.x, t.y, from, selectedTile);
+      draw();
+    });
+    document.getElementById('btn-grid').addEventListener('click', () => {
+      view = toggleEditorGrid(view);
+      draw();
+    });
+  </script>
+</body>
+</html>
+
+    });
