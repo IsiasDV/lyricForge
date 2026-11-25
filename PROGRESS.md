@@ -22,11 +22,14 @@
   `toggleEditorGrid`, `setEditorGridCellSize`).
 - **Run 13.** Implemented roadmap item `2.3c4` — canvas view binding helpers:
   screen→world conversion — `src/editor/view.js` (`screenToWorld`).
+- **Run 14.** Implemented roadmap item `2.3c5` — canvas render / input binding
+  helpers: screen→world, pan, zoom — `src/editor/view.js` (`panByScreen`,
+  `zoomAtScreen`).
 - The code tree (`src/`, later `samples/`, `tests/`) will be added as later
   ROADMAP items are worked.
 
 ## Next run
 
-- Next run should pick the first unchecked item in `ROADMAP.md`: **2.3c5 Map
+- Next run should pick the first unchecked item in `ROADMAP.md`: **2.3c6 Map
   editor — canvas render / input binding for camera / grid** (needs canvas + editor
   state).

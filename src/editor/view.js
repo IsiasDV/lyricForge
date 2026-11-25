@@ -34,3 +34,40 @@ export function screenToWorld(state, screenX, screenY, viewportWidth, viewportHe
   return { x, y };
 }
 
+// Pure screen-space drag → world delta (accounts for camera zoom).
+export function panByScreen(state, screenDx, screenDy, viewportWidth, viewportHeight) {
+  const cam = state.camera;
+  return {
+    ...state,
+    camera: {
+      ...cam,
+      x: cam.x - screenDx / cam.zoom,
+      y: cam.y - screenDy / cam.zoom,
+    },
+  };
+}
+
+// Pure zoom anchored at a screen point (world point under cursor stays put).
+export function zoomAtScreen(
+  state,
+  screenX,
+  screenY,
+  factor,
+  viewportWidth,
+  viewportHeight
+) {
+  const cam = state.camera;
+  const zoom = Math.min(8, Math.max(0.05, cam.zoom * factor));
+  const worldX = cam.x + (screenX - viewportWidth / 2) / cam.zoom;
+  const worldY = cam.y + (viewportHeight / 2 - screenY) / cam.zoom;
+  return {
+    ...state,
+    camera: {
+      x: worldX - (screenX - viewportWidth / 2) / zoom,
+      y: worldY - (viewportHeight / 2 - screenY) / zoom,
+      zoom,
+    },
+  };
+}
+
+
