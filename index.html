@@ -224,14 +224,20 @@
     }
 
     canvas.addEventListener('mousedown', (e) => {
-      if (e.button === 0) { dragging = true; paintAt(e.clientX, e.clientY); }
-      if (e.button === 2) { dragging = true; eraseAt(e.clientX, e.clientY); }
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      if (e.button === 0) { dragging = true; paintAt(cx, cy); }
+      if (e.button === 2) { dragging = true; eraseAt(cx, cy); }
     });
     window.addEventListener('mouseup', () => { dragging = false; });
     canvas.addEventListener('mousemove', (e) => {
       if (!dragging) return;
-      if (e.buttons === 1) paintAt(e.clientX, e.clientY);
-      if (e.buttons === 2) eraseAt(e.clientX, e.clientY);
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      if (e.buttons === 1) paintAt(cx, cy);
+      if (e.buttons === 2) eraseAt(cx, cy);
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 

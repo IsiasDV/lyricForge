@@ -10,6 +10,7 @@ export function createEditorViewport3D() {
 
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
   camera.position.set(30, 25, 30);
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(1, 1);
