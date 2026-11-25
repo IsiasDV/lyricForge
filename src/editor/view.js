@@ -30,7 +30,7 @@ export function setEditorGridCellSize(state, cellSize) {
 export function screenToWorld(state, screenX, screenY, viewportWidth, viewportHeight) {
   const cam = state.camera;
   const x = cam.x + (screenX - viewportWidth / 2) / cam.zoom;
-  const y = cam.y + (viewportHeight / 2 - screenY) / cam.zoom;
+  const y = cam.y + (screenY - viewportHeight / 2) / cam.zoom;
   return { x, y };
 }
 
@@ -57,9 +57,9 @@ export function zoomAtScreen(
   viewportHeight
 ) {
   const cam = state.camera;
-  const zoom = Math.min(8, Math.max(0.05, cam.zoom * factor));
+  const zoom = Math.min(8, Math.max(0.25, cam.zoom * factor));
   const worldX = cam.x + (screenX - viewportWidth / 2) / cam.zoom;
-  const worldY = cam.y + (viewportHeight / 2 - screenY) / cam.zoom;
+  const worldY = cam.y + (screenY - viewportHeight / 2) / cam.zoom;
   return {
     ...state,
     camera: {

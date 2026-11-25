@@ -4,7 +4,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { objectMeshKind } from './objects.js';
 
-export function createEditorViewport3D() {
+export function createEditorViewport3D(canvasEl) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x11141a);
 
@@ -12,8 +12,8 @@ export function createEditorViewport3D() {
   camera.position.set(30, 25, 30);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(1, 1);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasEl });
+  renderer.setSize(canvasEl.clientWidth || 400, canvasEl.clientHeight || 300, false);
 
   const ambient = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambient);

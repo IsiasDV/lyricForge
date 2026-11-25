@@ -286,7 +286,7 @@
         if (!viewport3dReady) {
           try {
             const mod = await import('./src/editor/viewport-3d.js');
-            viewport3d = mod.createEditorViewport3D();
+            viewport3d = mod.createEditorViewport3D(canvas3);
             viewport3dReady = true;
           } catch (e) {
             console.error('3D viewport unavailable:', e);
@@ -305,7 +305,7 @@
           // Recreate viewport after it was disposed (e.g. toggled back from 2d).
           try {
             const mod = await import('./src/editor/viewport-3d.js');
-            viewport3d = mod.createEditorViewport3D();
+            viewport3d = mod.createEditorViewport3D(canvas3);
           } catch (e) {
             viewport3dReady = false;
             const errMsg = (e?.message ? String(e.message) : '') + (e?.stack ? ' :: ' + String(e.stack).split('\\n')[0] : '');
@@ -322,8 +322,9 @@
           // Defer resize one frame so canvas3.clientWidth/Height are non-zero
           // after display:block layout flushes.
           requestAnimationFrame(() => {
-            viewport3d.resize(canvas3.clientWidth, canvas3.clientHeight);
+            viewport3d.resize(canvas3.clientWidth || 400, canvas3.clientHeight || 300);
             viewport3d.start();
+            viewport3d.render();
           });
         }
       } else if (viewport3d) {

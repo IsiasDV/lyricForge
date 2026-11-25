@@ -32,7 +32,7 @@ const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
   const v = createEditorView();
   const w = screenToWorld(v, 100, 50, 400, 300);
   assertClose(w.x, -100);
-  assertClose(w.y, 100);
+  assertClose(w.y, -100);
 }
 
 // view: pan by screen delta
