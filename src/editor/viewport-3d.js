@@ -27,7 +27,18 @@ export function createEditorViewport3D() {
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
 
+  const grid = new THREE.GridHelper(200, 100, 0x2a3060, 0x1a1f40);
+  grid.position.y = 0.01;
+  scene.add(grid);
+  const axes = new THREE.AxesHelper(10);
+  scene.add(axes);
+
   const placed = [];
+
+  let animId = null;
+  const animate = () => { renderer.render(scene, camera); animId = requestAnimationFrame(animate); };
+  function start() { if (animId == null) animId = requestAnimationFrame(animate); }
+  function stop() { if (animId != null) { cancelAnimationFrame(animId); animId = null; } }
 
   function addObject(obj) {
     const kind = objectMeshKind(obj);
@@ -86,5 +97,5 @@ export function createEditorViewport3D() {
     scene.clear();
   }
 
-  return { scene, camera, renderer, resize, render, dispose, addObject, clearObjects, placed };
+  return { scene, camera, renderer, resize, render, dispose, addObject, clearObjects, placed, start, stop, grid, axes };
 }

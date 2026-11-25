@@ -16,6 +16,13 @@
   - [x] 2.3c4 Canvas view binding helpers: screen→world (pure) — implemented `src/editor/view.js`
   - [x] 2.3c5 Canvas render / input binding helpers: screen→world, pan, zoom — implemented `src/editor/view.js`
 
+## Editor milestones (3D viewport)
+
+- [x] **3.1 Editor 3D viewport module (Three.js scene / lights / camera / ground / grid + axes)** — `src/editor/viewport-3d.js`
+- [x] **3.2 Game object inventory + placeholder mesh kinds** — `src/editor/objects.js`, `src/editor/viewport-3d.js`
+- [ ] **3.3 3D viewport grid + axes** — user-reported: no grid or axes visible yet (grid + axes now added; verify in browser)
+- [ ] **3.4 All editor buttons functional** — user-reported: buttons don't work yet (3D toggle now uses safe start/stop loop; verify)
+
 ## Game mod format
 
 - [x] **0.1 Ground game mod format in live riseoflyric.com source** — `docs/FORMAT.md`
