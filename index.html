@@ -31,6 +31,11 @@
 </head>
 <body>
   <div id="app">
+    <div id="error-overlay" style="display:none; position:fixed; inset:0; background:#7a2c2c; color:#fff; z-index:50; padding:24px; font-family:system-ui; overflow-y:auto;">
+      <div style="font-size:18px; font-weight:bold; margin-bottom:12px;">Editor Error</div>
+      <pre id="error-message" style="font-size:12px; white-space:pre-wrap; background:#2a1c1c; padding:12px; border-radius:4px;"></pre>
+      <button onclick="document.getElementById('error-overlay').style.display='none'" style="margin-top:12px; background:#4c4eef; border:none; color:#fff; padding:8px 16px; border-radius:4px; cursor:pointer;">Dismiss</button>
+    </div>
     <aside id="sidebar">
       <h2>Tile Palette</h2>
       <div class="palette" id="palette"></div>
@@ -54,6 +59,18 @@
     </main>
   </div>
   <script type="module">
+    // Global error reporter — shows a visible overlay if anything fails at runtime.
+    const showError = (msg) => {
+      const overlay = document.getElementById('error-overlay');
+      const pre = document.getElementById('error-message');
+      if (overlay && pre) {
+        pre.textContent = String(msg ?? 'Unknown error');
+        overlay.style.display = 'block';
+      }
+      console.error('EDITOR_ERROR:', msg);
+    };
+    window.addEventListener('error', (e) => showError(e.message));
+    window.addEventListener('unhandledrejection', (e) => showError(e.reason ?? e));
 
     import { TILE_PALETTE, getTile, tileLayer, paintTile, eraseTile } from './src/editor/map/tile-palette.js';
     import { createMap } from './src/editor/map/map.js';
@@ -74,8 +91,9 @@
     let viewMode = '2d';
 
     function resize() {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
+      const parent = canvas.parentElement;
+      canvas.width = Math.max(parent.clientWidth, 400);
+      canvas.height = Math.max(parent.clientHeight, 300);
       if (viewMode === '3d') {
         const c3 = document.getElementById('viewport3d');
         if (viewport3d) viewport3d.resize(c3.clientWidth, c3.clientHeight);
