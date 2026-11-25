@@ -1,0 +1,80 @@
+import assert from 'node:assert';
+import { createEditorCamera, panCamera, zoomCamera } from '../src/editor/camera.js';
+import { createGrid, setGridVisible, setGridCellSize } from '../src/editor/grid.js';
+import { createEditorView, panEditorView, zoomEditorView, toggleEditorGrid, setEditorGridCellSize, screenToWorld, panByScreen, zoomAtScreen } from '../src/editor/view.js';
+import { fillTiles } from '../src/editor/map/fill.js';
+import { paintTile, eraseTile, TILE_PALETTE } from '../src/editor/map/tile-palette.js';
+import { createMap } from '../src/editor/map/map.js';
+
+const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
+
+// camera
+{
+  const cam = createEditorCamera();
+  assert.deepEqual(cam, { x: 0, y: 0, zoom: 1 });
+  assert.deepEqual(panCamera(cam, 5, -3), { x: 5, y: -3, zoom: 1 });
+  assert.equal(zoomCamera(cam, 2).zoom, 2);
+  assert.equal(zoomCamera(cam, 100).zoom, 8);
+  assert.equal(zoomCamera(cam, 0.01).zoom, 0.05);
+}
+
+// grid
+{
+  const g = createGrid();
+  assert.equal(g.visible, true);
+  assert.equal(setGridVisible(g, false).visible, false);
+  assert.equal(setGridCellSize(g, 16).cellSize, 16);
+}
+
+// view: screen -> world
+{
+  const v = createEditorView();
+  const w = screenToWorld(v, 100, 50, 400, 300);
+  assertClose(w.x, -100);
+  assertClose(w.y, 100);
+}
+
+// view: pan by screen delta
+{
+  const v = createEditorView();
+  const p = panByScreen(v, 40, 20, 400, 300);
+  assertClose(p.camera.x, -40);
+  assertClose(p.camera.y, -20);
+}
+
+// view: zoom anchored at screen
+{
+  const v = createEditorView();
+  const z = zoomAtScreen(v, 200, 150, 2, 400, 300);
+  assert.equal(z.camera.zoom, 2);
+}
+
+// tile palette paint / erase
+{
+  const map = createMap({ id: 't', name: 'T', width: 4, height: 4 });
+  const layerId = 't:layer:tile';
+  const painted = paintTile(map, layerId, 1, 2, 'tiles.floor');
+  const layer = painted.layers.find((l) => l.id === layerId);
+  assert.equal(layer.tiles['1,2'], 'tiles.floor');
+  const erased = eraseTile(painted, layerId, 1, 2);
+  const layer2 = erased.layers.find((l) => l.id === layerId);
+  assert.equal(layer2.tiles['1,2'], undefined);
+}
+
+// fill
+{
+  const map = createMap({ id: 't2', name: 'T2', width: 4, height: 4 });
+  const layerId = 't2:layer:tile';
+  let m = paintTile(map, layerId, 0, 0, 'tiles.floor');
+  m = paintTile(m, layerId, 1, 0, 'tiles.floor');
+  m = paintTile(m, layerId, 0, 1, 'tiles.floor');
+  m = paintTile(m, layerId, 2, 0, 'tiles.horizon');
+  const filled = fillTiles(m, layerId, 0, 0, 'tiles.floor', 'tiles.horizon');
+  const layer = filled.layers.find((l) => l.id === layerId);
+  assert.equal(layer.tiles['0,0'], 'tiles.horizon');
+  assert.equal(layer.tiles['1,0'], 'tiles.horizon');
+  assert.equal(layer.tiles['0,1'], 'tiles.horizon');
+  assert.equal(layer.tiles['2,0'], 'tiles.horizon');
+}
+
+console.log('EDITOR_SMOKE_OK');
