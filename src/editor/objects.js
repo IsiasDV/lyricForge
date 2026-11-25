@@ -58,3 +58,26 @@ export function objectTypes(mapDef) {
   for (const o of collectMapObjects(mapDef)) kinds.add(o.kind);
   return [...kinds].sort();
 }
+
+// Placeholder mesh primitive used by the 3D viewport to preview a game object.
+export function objectMeshKind(obj) {
+  switch (obj?.kind) {
+    case 'map-model': return 'box';
+    case 'spawn': return 'sphere';
+    case 'barrier': return 'box';
+    case 'enemy-area': return 'box';
+    case 'teleporter':
+    case 'broken-teleporter':
+    case 'color-machine':
+    case 'powerup-machine':
+    case 'perk-machine':
+    case 'behgernog':
+    case 'lyric-machine':
+    case 'shop':
+      return 'machine';
+    case 'lava': return 'plane';
+    case 'pillar': return 'cylinder';
+    case 'no-collide': return null;
+    default: return null;
+  }
+}

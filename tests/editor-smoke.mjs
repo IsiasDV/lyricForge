@@ -5,7 +5,7 @@ import { createEditorView, panEditorView, zoomEditorView, toggleEditorGrid, setE
 import { fillTiles } from '../src/editor/map/fill.js';
 import { paintTile, eraseTile, TILE_PALETTE } from '../src/editor/map/tile-palette.js';
 import { createMap } from '../src/editor/map/map.js';
-import { collectMapObjects, objectTypes, OBJECT_KINDS } from '../src/editor/objects.js';
+import { collectMapObjects, objectTypes, objectMeshKind, OBJECT_KINDS } from '../src/editor/objects.js';
 
 const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
 
@@ -106,6 +106,22 @@ const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
   assert.ok(objectTypes(night).includes('map-model'));
   assert.ok(OBJECT_KINDS.includes('map-model'));
   assert.equal(collectMapObjects({}).length, 0);
+  assert.equal(objectMeshKind({ kind: 'map-model', model: night.model, scale: night.scale }), 'box');
+  assert.equal(objectMeshKind({ kind: 'spawn' }), 'sphere');
+  assert.equal(objectMeshKind({ kind: 'barrier' }), 'box');
+  assert.equal(objectMeshKind({ kind: 'enemy-area' }), 'box');
+  assert.equal(objectMeshKind({ kind: 'teleporter' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'broken-teleporter' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'color-machine' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'powerup-machine' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'perk-machine' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'behgernog' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'lyric-machine' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'shop' }), 'machine');
+  assert.equal(objectMeshKind({ kind: 'lava' }), 'plane');
+  assert.equal(objectMeshKind({ kind: 'pillar' }), 'cylinder');
+  assert.equal(objectMeshKind({ kind: 'no-collide' }), null);
+  assert.equal(objectMeshKind({ kind: 'unknown' }), null);
 }
 
 console.log('EDITOR_SMOKE_OK');
