@@ -287,5 +287,17 @@
       draw();
     });
   </script>
+  <!-- Non-module fallback: detects if the editor module failed to load entirely. -->
+  <script>
+    setTimeout(() => {
+      const palette = document.getElementById('palette');
+      const overlay = document.getElementById('error-overlay');
+      const pre = document.getElementById('error-message');
+      if (overlay && pre && palette && palette.children.length === 0) {
+        pre.textContent = 'Editor module did not load. Possible causes: missing source files on GitHub Pages, a JS error in the console, or a cached old version (try Ctrl+F5 hard refresh).';
+        overlay.style.display = 'block';
+      }
+    }, 1500);
+  </script>
 </body>
 </html>
