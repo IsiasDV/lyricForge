@@ -11,6 +11,7 @@
     #sidebar { width: 260px; background: #1a1432; border-right: 1px solid #332a5c; padding: 12px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
     #main { flex: 1; position: relative; background: #0e0822; overflow: hidden; }
     canvas#editor { display: block; width: 100%; height: 100%; background: #140b26; }
+    canvas#viewport3d { display: none; width: 100%; height: 100%; background: #11141a; }
     h2 { font-size: 14px; color: #b6b0d8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
     .palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .tile { aspect-ratio: 1; border: 2px solid transparent; border-radius: 4px; cursor: pointer; transition: border-color 0.1s; }
@@ -39,6 +40,7 @@
         <button id="btn-fill">Fill</button>
       </div>
       <button id="btn-grid" class="danger">Toggle Grid</button>
+      <button id="btn-view-3d" class="primary">3D View</button>
       <div class="hint">Click palette to select • click canvas to paint • drag to pan • scroll to zoom</div>
       <div class="status">
         <div>Tile: <b id="status-tile">tiles.floor</b></div>
@@ -48,6 +50,7 @@
     </aside>
     <main id="main">
       <canvas id="editor"></canvas>
+      <canvas id="viewport3d"></canvas>
     </main>
   </div>
   <script type="module">
@@ -58,6 +61,7 @@
     import { createEditorCamera, panCamera, zoomCamera } from './src/editor/camera.js';
     import { createGrid, setGridVisible, setGridCellSize } from './src/editor/grid.js';
     import { createEditorView, panEditorView, zoomAtScreen, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
+    import { createEditorViewport3D } from './src/editor/viewport-3d.js';
 
     const canvas = document.getElementById('editor');
     const ctx = canvas.getContext('2d');
@@ -66,10 +70,16 @@
     let selectedTile = TILE_PALETTE[3].id;
     let view = createEditorView();
     let dragging = false;
+    let viewport3d = null;
+    let viewMode = '2d';
 
     function resize() {
       canvas.width = canvas.parentElement.clientWidth;
       canvas.height = canvas.parentElement.clientHeight;
+      if (viewMode === '3d') {
+        const c3 = document.getElementById('viewport3d');
+        if (viewport3d) viewport3d.resize(c3.clientWidth, c3.clientHeight);
+      }
       draw();
     }
     window.addEventListener('resize', resize);
@@ -219,6 +229,23 @@
       const from = layer?.tiles?.[`${t.x},${t.y}`];
       if (!from) return;
       map = fillTiles(map, `${map.id}:layer:tile`, t.x, t.y, from, selectedTile);
+      draw();
+    });
+    document.getElementById('btn-view-3d').addEventListener('click', () => {
+      viewMode = viewMode === '3d' ? '2d' : '3d';
+      const canvas3 = document.getElementById('viewport3d');
+      const show3 = viewMode === '3d';
+      canvas3.style.display = show3 ? 'block' : 'none';
+      document.getElementById('editor').style.display = show3 ? 'none' : 'block';
+      if (show3) {
+        if (!viewport3d) viewport3d = createEditorViewport3D();
+        viewport3d.resize(canvas3.clientWidth, canvas3.clientHeight);
+        viewport3d.renderer.setAnimationLoop(() => viewport3d.render());
+        viewport3d.render();
+      } else if (viewport3d) {
+        viewport3d.dispose();
+        viewport3d = null;
+      }
       draw();
     });
     document.getElementById('btn-grid').addEventListener('click', () => {
