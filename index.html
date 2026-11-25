@@ -61,7 +61,6 @@
     import { createEditorCamera, panCamera, zoomCamera } from './src/editor/camera.js';
     import { createGrid, setGridVisible, setGridCellSize } from './src/editor/grid.js';
     import { createEditorView, panEditorView, zoomAtScreen, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
-    import { createEditorViewport3D } from './src/editor/viewport-3d.js';
 
     const canvas = document.getElementById('editor');
     const ctx = canvas.getContext('2d');
@@ -71,6 +70,7 @@
     let view = createEditorView();
     let dragging = false;
     let viewport3d = null;
+    let viewport3dReady = false;
     let viewMode = '2d';
 
     function resize() {
@@ -231,17 +231,34 @@
       map = fillTiles(map, `${map.id}:layer:tile`, t.x, t.y, from, selectedTile);
       draw();
     });
-    document.getElementById('btn-view-3d').addEventListener('click', () => {
+    document.getElementById('btn-view-3d').addEventListener('click', async () => {
       viewMode = viewMode === '3d' ? '2d' : '3d';
       const canvas3 = document.getElementById('viewport3d');
       const show3 = viewMode === '3d';
       canvas3.style.display = show3 ? 'block' : 'none';
       document.getElementById('editor').style.display = show3 ? 'none' : 'block';
       if (show3) {
-        if (!viewport3d) viewport3d = createEditorViewport3D();
-        viewport3d.resize(canvas3.clientWidth, canvas3.clientHeight);
-        viewport3d.start();
+        if (!viewport3dReady) {
+          try {
+            const mod = await import('./src/editor/viewport-3d.js');
+            viewport3d = mod.createEditorViewport3D();
+            viewport3dReady = true;
+          } catch (e) {
+            console.error('3D viewport unavailable:', e);
+            viewport3dReady = false;
+            viewMode = '2d';
+            canvas3.style.display = 'none';
+            document.getElementById('editor').style.display = 'block';
+            alert('3D viewport requires Three.js which did not load. Check console.');
+            return;
+          }
+        }
+        if (viewport3d) {
+          viewport3d.resize(canvas3.clientWidth, canvas3.clientHeight);
+          viewport3d.start();
+        }
       } else if (viewport3d) {
+        viewport3d.stop();
         viewport3d.dispose();
         viewport3d = null;
       }
