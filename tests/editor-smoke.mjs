@@ -5,6 +5,7 @@ import { createEditorView, panEditorView, zoomEditorView, toggleEditorGrid, setE
 import { fillTiles } from '../src/editor/map/fill.js';
 import { paintTile, eraseTile, TILE_PALETTE } from '../src/editor/map/tile-palette.js';
 import { createMap } from '../src/editor/map/map.js';
+import { collectMapObjects, objectTypes, OBJECT_KINDS } from '../src/editor/objects.js';
 
 const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
 
@@ -75,6 +76,36 @@ const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
   assert.equal(layer.tiles['1,0'], 'tiles.horizon');
   assert.equal(layer.tiles['0,1'], 'tiles.horizon');
   assert.equal(layer.tiles['2,0'], 'tiles.horizon');
+}
+
+// object inventory (3d viewport): every thing a game map contains
+{
+  const night = {
+    id: 'night-of-the-living-void',
+    model: 'assets/map_night/map/map.glb',
+    scale: 0.75,
+    spawn: [0, 0.5, 0],
+    enemyAreas: [{ min: [-20.2, -0.7, -30.6], max: [30.0, 12.1, 43.7] }],
+    powerupMachine: { at: [10.3, 0.0, 1.5] },
+    perkMachine: { at: [5.8, 0.0, 1.4] },
+    behgernog: { at: [-15.2, 0.09, 0.4] },
+    teleporter: { at: [1, 0, 2], to: [0, 3, 0] },
+    barriers: [{ min: [0, 0, 0], max: [1, 2, 1], cost: 250 }],
+    lava: { mesh: 'Plane.004' },
+  };
+  const objs = collectMapObjects(night);
+  assert.ok(objs.some((o) => o.kind === 'map-model' && o.model === night.model));
+  assert.ok(objs.some((o) => o.kind === 'spawn'));
+  assert.ok(objs.some((o) => o.kind === 'barrier'));
+  assert.ok(objs.some((o) => o.kind === 'enemy-area'));
+  assert.ok(objs.some((o) => o.kind === 'teleporter'));
+  assert.ok(objs.some((o) => o.kind === 'powerup-machine'));
+  assert.ok(objs.some((o) => o.kind === 'perk-machine'));
+  assert.ok(objs.some((o) => o.kind === 'behgernog'));
+  assert.ok(objs.some((o) => o.kind === 'lava'));
+  assert.ok(objectTypes(night).includes('map-model'));
+  assert.ok(OBJECT_KINDS.includes('map-model'));
+  assert.equal(collectMapObjects({}).length, 0);
 }
 
 console.log('EDITOR_SMOKE_OK');
