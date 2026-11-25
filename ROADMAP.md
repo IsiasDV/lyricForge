@@ -13,7 +13,8 @@
   - [x] 2.3c1 Camera pan / zoom (pure helpers) — implemented `src/editor/camera.js`
   - [x] 2.3c2 Grid toggle (pure helpers) — implemented `src/editor/grid.js`
   - [x] 2.3c3 Editor view state (camera + grid) — implemented `src/editor/view.js`
-  - [ ] 2.3c4 Canvas view binding for camera / grid (needs canvas + editor state)
+  - [x] 2.3c4 Canvas view binding helpers: screen→world (pure) — implemented `src/editor/view.js`
+  - [ ] 2.3c5 Canvas render / input binding for camera / grid (needs canvas + editor state)
 
 ## Game mod format
 
