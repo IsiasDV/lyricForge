@@ -2,6 +2,7 @@
 // models, spawner areas, barriers). Base scene follows src/render/scene.js.
 
 import * as THREE from '../vendor/three.module.min.js';
+import { GLTFLoader } from '../vendor/GLTFLoader.js';
 import { objectMeshKind } from './objects.js';
 
 export function createEditorViewport3D(canvasEl) {
@@ -34,6 +35,54 @@ export function createEditorViewport3D(canvasEl) {
   const axes = new THREE.AxesHelper(10);
   scene.add(axes);
 
+  // Orbit controls (basic: left-drag orbit, right-drag pan, wheel zoom)
+  let isOrbiting = false, isPanning = false;
+  let lastX = 0, lastY = 0;
+  const target = new THREE.Vector3(0, 0, 0);
+  const spherical = new THREE.Spherical();
+  spherical.setFromVector3(camera.position.clone().sub(target));
+  const minDistance = 5, maxDistance = 200;
+  function updateCamera() {
+    camera.position.setFromSpherical(spherical).add(target);
+    camera.lookAt(target);
+  }
+
+  canvasEl.addEventListener('mousedown', (e) => {
+    lastX = e.clientX; lastY = e.clientY;
+    if (e.button === 0) { isOrbiting = true; canvasEl.style.cursor = 'grabbing'; }
+    if (e.button === 2) { isPanning = true; canvasEl.style.cursor = 'grabbing'; }
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isOrbiting && !isPanning) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    if (isOrbiting) {
+      spherical.theta -= dx * 0.005;
+      spherical.phi = THREE.MathUtils.clamp(spherical.phi + dy * 0.005, 0.01, Math.PI - 0.01);
+      updateCamera();
+    }
+    if (isPanning) {
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).normalize();
+      const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1).normalize();
+      target.addScaledVector(right, -dx * spherical.radius * 0.001);
+      target.addScaledVector(up, dy * spherical.radius * 0.001);
+      updateCamera();
+    }
+  });
+  window.addEventListener('mouseup', (e) => {
+    if (e.button === 0) isOrbiting = false;
+    if (e.button === 2) isPanning = false;
+    canvasEl.style.cursor = '';
+  });
+  canvasEl.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    spherical.radius = THREE.MathUtils.clamp(spherical.radius * (e.deltaY > 0 ? 1.1 : 0.9), minDistance, maxDistance);
+    updateCamera();
+  }, { passive: false });
+  canvasEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
   const placed = [];
 
   let animId = null;
@@ -41,11 +90,33 @@ export function createEditorViewport3D(canvasEl) {
   function start() { if (animId == null) animId = requestAnimationFrame(animate); }
   function stop() { if (animId != null) { cancelAnimationFrame(animId); animId = null; } }
 
+  const loader = new GLTFLoader();
+  async function loadGltf(url) {
+    return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
+  }
+
   function addObject(obj) {
     const kind = objectMeshKind(obj);
     if (!kind) return null;
     const group = new THREE.Group();
-    if (kind === 'box') {
+    if (obj?.kind === 'map-model') {
+      const modelUrl = obj.model;
+      const scale = obj.scale ?? 1;
+      if (modelUrl) {
+        loadGltf(modelUrl).then((gltf) => {
+          const model = gltf.scene;
+          model.scale.setScalar(scale);
+          const box = new THREE.Box3().setFromObject(model);
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          model.position.sub(center);
+          group.add(model);
+        }).catch((e) => console.warn('Failed to load model:', modelUrl, e));
+      } else {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4c4eef, roughness: 0.8, metalness: 0.4, wireframe: true }));
+        group.add(mesh);
+      }
+    } else if (kind === 'box') {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xff6a3a, roughness: 0.8, metalness: 0.4 }));
       mesh.scale.set((obj.max?.[0] ?? 1) - (obj.min?.[0] ?? 0), (obj.max?.[1] ?? 1) - (obj.min?.[1] ?? 0), (obj.max?.[2] ?? 1) - (obj.min?.[2] ?? 0));
       mesh.position.set((obj.min?.[0] ?? 0) + (obj.max?.[0] ?? 1) / 2, (obj.min?.[1] ?? 0) + (obj.max?.[1] ?? 1) / 2, (obj.min?.[2] ?? 0) + (obj.max?.[2] ?? 1) / 2);
@@ -63,6 +134,12 @@ export function createEditorViewport3D(canvasEl) {
       const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 3, 12), new THREE.MeshStandardMaterial({ color: 0x3aa0ff, roughness: 0.6, metalness: 0.5 }));
       mesh.position.set(obj.region?.min?.[0] ?? 0, 1, obj.region?.min?.[2] ?? 0);
       group.add(mesh);
+    } else if (kind === 'machine') {
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.6, 1.0), new THREE.MeshStandardMaterial({ color: 0x23262e, roughness: 0.6, metalness: 0.5 }));
+      body.position.y = 0.8;
+      const orb = new THREE.Mesh(new THREE.OctahedronGeometry(0.25), new THREE.MeshStandardMaterial({ color: 0xc84cff, roughness: 0.4, metalness: 0.3 }));
+      orb.position.y = 1.5;
+      group.add(body, orb);
     } else {
       const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.6, 1.0), new THREE.MeshStandardMaterial({ color: 0x23262e, roughness: 0.6, metalness: 0.5 }));
       body.position.y = 0.8;
