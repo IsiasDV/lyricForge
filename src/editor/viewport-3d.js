@@ -103,7 +103,7 @@ export function createEditorViewport3D(canvasEl, deps = {}) {
       // Assets receiver: download (or serve from cache) the model, then parse
       // the cached GLB bytes locally instead of hot-loading from a remote url.
       const assets = await receiver.load({ models: [url] }, { onProgress: onProgressCb });
-      const resolved = receiver.baseUrl ? resolveAssetUrl(url, receiver.baseUrl) : String(url);
+      const resolved = resolveAssetUrl(url, receiver.baseUrl);
       const path = resolved.slice(0, Math.max(resolved.lastIndexOf('/') + 1, 0));
       const buffer = assets?.models?.[resolved];
       if (!buffer || buffer.byteLength === 0) throw new Error(`Asset receiver has no model payload for ${url}`);
