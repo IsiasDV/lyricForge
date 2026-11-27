@@ -1,5 +1,6 @@
 # Progress
 
+- **Run 47.** Fixed critical bug: `createAssetsReceiver()` was called without `fetchImpl` in `index.html`, so `download()` always resolved to `undefined` (`fetchImpl?.(resolved)` was `undefined`, no fallback to global `fetch`). Assets cached as `undefined` → "Download Assets" reported "ready" but `loadGltf()` got no buffer → map models never rendered (only the spawn sphere showed). Fixed by falling back to global `fetch` when `fetchImpl` is unset: `(fetchImpl ?? fetch)(resolved)`.
 - **Run 46.** Fixed critical bug: `src/editor/viewport-3d.js` imported `resolveAssetUrl` from `../../core/assets.js`, which from `src/editor/` resolves to `core/assets.js` at the repo root — a nonexistent path that 404'd. Corrected to `../core/assets.js` (→ `src/core/assets.js`). All seven modules now resolve correctly; 3D viewport loads without the "Failed to fetch dynamically imported module" error.
 - **Run 45.** Final audit of the assets-receiver arc: confirmed the editor 3D view is
   the only place models get fetched, and it now goes exclusively through the receiver
