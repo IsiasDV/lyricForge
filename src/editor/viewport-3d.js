@@ -106,8 +106,8 @@ export function createEditorViewport3D(canvasEl, deps = {}) {
       const resolved = receiver.baseUrl ? resolveAssetUrl(url, receiver.baseUrl) : String(url);
       const path = resolved.slice(0, Math.max(resolved.lastIndexOf('/') + 1, 0));
       const buffer = assets?.models?.[resolved];
-      const gltf = buffer ? await loader.parseAsync(buffer, path) : null;
-      if (!gltf) throw new Error(`Asset receiver has no model payload for ${url}`);
+      if (!buffer || buffer.byteLength === 0) throw new Error(`Asset receiver has no model payload for ${url}`);
+      const gltf = await loader.parseAsync(buffer, path);
       return gltf;
     }
     return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));

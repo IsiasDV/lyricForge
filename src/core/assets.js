@@ -71,6 +71,7 @@ export function createAssetsReceiver({ baseUrl, fetchImpl } = {}) {
     const pending = inflight.get(k) ?? (fetchImpl ?? fetch)(resolved).then(async (res) => {
       if (res != null && typeof res.ok === 'boolean' && !res.ok) throw new Error(`Asset fetch failed: ${resolved} (${res.status ?? 'unknown'})`);
       const buf = await res.arrayBuffer();
+      if (buf.byteLength === 0) throw new Error(`Asset fetch returned empty body: ${resolved}`);
       cache.set(k, type === 'json' ? JSON.parse(new TextDecoder().decode(buf)) : buf);
       return cache.get(k);
     });
