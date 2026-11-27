@@ -1,5 +1,10 @@
 # Progress
 
+- **Run 45.** Final audit of the assets-receiver arc: confirmed the editor 3D view is
+  the only place models get fetched, and it now goes exclusively through the receiver
+  (cached GLB bytes → `GLTFLoader.parseAsync`); game runtime uses the module-level
+  `loadAssets`/`playAudio` from `src/core/assets.js`. No legacy hot-load paths left in
+  the editor (a fallback loader exists only when no receiver is injected).
 - **Run 44.** Implemented roadmap item `3.4` — all editor buttons functional:
   `btn-new` now clears 3D viewport objects (`viewport3d.clearObjects()`) when resetting
   the map.
@@ -51,3 +56,6 @@
   receiver follow-ups are checked off. Next run should pick the first unchecked item in
   `ROADMAP.md`: the **Code tree** section — next candidate could be expanding
   `samples/editor-sample.mjs` or adding new code-tree item entries for the new modules.
+  If the code tree is settled: move on to the assets-receiver follow-ups (music/SFX track
+  lists beyond `playAudio`; real asset-host config for GitHub Pages deployment; browser
+  visual verification of grid/axes + buttons).
