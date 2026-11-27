@@ -1,5 +1,8 @@
 # Progress
 
+- **Run 44.** Implemented roadmap item `3.4` — all editor buttons functional:
+  `btn-new` now clears 3D viewport objects (`viewport3d.clearObjects()`) when resetting
+  the map.
 - **Run 43.** Follow-up to the assets receiver: point `ASSETS_BASE` at the real game
   asset host (`https://riseoflyric.com/`) so the editor 3D view downloads real models
   from the game's asset host, not the default site root; added optional `onError`
@@ -44,6 +47,7 @@
 
 ## Next run
 
-- Next run should pick the first unchecked item in `ROADMAP.md`: **3.4 All editor
-  buttons functional** — user-reported: buttons don't work yet (3D toggle now uses safe
-  start/stop loop; verify).
+- All editor milestones (`1.x`, `2.x`, `3.x`), mod format item `0.1`, and the assets
+  receiver follow-ups are checked off. Next run should pick the first unchecked item in
+  `ROADMAP.md`: the **Code tree** section — next candidate could be expanding
+  `samples/editor-sample.mjs` or adding new code-tree item entries for the new modules.

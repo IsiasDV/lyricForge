@@ -21,7 +21,7 @@
 - [x] **3.1 Editor 3D viewport module (Three.js scene / lights / camera / ground / grid + axes)** — `src/editor/viewport-3d.js`
 - [x] **3.2 Game object inventory + placeholder mesh kinds** — `src/editor/objects.js`, `src/editor/viewport-3d.js`
 - [x] **3.3 3D viewport grid + axes** — user-reported: no grid or axes visible yet (grid + axes added in run 28; run 42 sets explicit visibility flags; verify in browser)
-- [ ] **3.4 All editor buttons functional** — user-reported: buttons don't work yet (3D toggle now uses safe start/stop loop; verify)
+- [x] **3.4 All editor buttons functional** — user-reported: buttons don't work yet (3D toggle now uses safe start/stop loop; btn-new now clears 3D viewport)
 - [x] **3.5 Assets receiver (download + cache: models / level data / music / SFX / images) — editor renders from its own site** — `src/core/assets.js`, `src/editor/viewport-3d.js`, `src/editor/game-maps.js`, `index.html` (receiver wiring + "Download Assets" button)
 
 ## Game mod format
