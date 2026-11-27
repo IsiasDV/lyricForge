@@ -4,7 +4,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { GLTFLoader } from '../vendor/GLTFLoader.js';
 import { objectMeshKind } from './objects.js';
-import { resolveAssetUrl } from '../../core/assets.js';
+import { resolveAssetUrl } from '../core/assets.js';
 
 export function createEditorViewport3D(canvasEl, deps = {}) {
   const scene = new THREE.Scene();
