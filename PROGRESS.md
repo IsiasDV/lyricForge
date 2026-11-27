@@ -1,5 +1,10 @@
 # Progress
 
+- **Run 43.** Follow-up to the assets receiver: point `ASSETS_BASE` at the real game
+  asset host (`https://riseoflyric.com/`) so the editor 3D view downloads real models
+  from the game's asset host, not the default site root; added optional `onError`
+  callback to the viewport 3D deps and wired it through both create paths
+  (`index.html` sets the `Assets:` status to `error` on failure).
 - **Run 42.** Implemented roadmap item `3.3` — 3D viewport grid + axes: explicit
   visibility flags on the `GridHelper` / `AxesHelper` in `src/editor/viewport-3d.js`
   (grid + axes were added in run 28; flags now set explicitly). Visual check in browser

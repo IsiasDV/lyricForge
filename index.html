@@ -310,7 +310,7 @@
         if (!viewport3dReady) {
           try {
             const mod = await import('./src/editor/viewport-3d.js');
-            viewport3d = mod.createEditorViewport3D(canvas3, { receiver: assetsReceiver, onProgress: (p) => updateAssetStatus(p) });
+            viewport3d = mod.createEditorViewport3D(canvas3, { receiver: assetsReceiver, onProgress: (p) => updateAssetStatus(p), onError: (e) => { assetStatus = 'error'; const el2 = document.getElementById('status-assets'); if (el2) el2.textContent = 'error'; console.warn('ASSETS_MODEL_ERROR', e); } });
             viewport3dReady = true;
           } catch (e) {
             console.error('3D viewport unavailable:', e);
@@ -329,7 +329,7 @@
           // Recreate viewport after it was disposed (e.g. toggled back from 2d).
           try {
             const mod = await import('./src/editor/viewport-3d.js');
-            viewport3d = mod.createEditorViewport3D(canvas3, { receiver: assetsReceiver, onProgress: (p) => updateAssetStatus(p) });
+            viewport3d = mod.createEditorViewport3D(canvas3, { receiver: assetsReceiver, onProgress: (p) => updateAssetStatus(p), onError: (e) => { assetStatus = 'error'; const el2 = document.getElementById('status-assets'); if (el2) el2.textContent = 'error'; console.warn('ASSETS_MODEL_ERROR', e); } });
           } catch (e) {
             viewport3dReady = false;
             const errMsg = (e?.message ? String(e.message) : '') + (e?.stack ? ' :: ' + String(e.stack).split('\\n')[0] : '');

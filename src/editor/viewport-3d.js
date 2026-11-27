@@ -96,6 +96,7 @@ export function createEditorViewport3D(canvasEl, deps = {}) {
   const loader = deps?.loader ?? new GLTFLoader();
   const receiver = deps?.receiver ?? null;
   const onProgressCb = typeof deps?.onProgress === 'function' ? deps.onProgress : null;
+  const onErrorCb = typeof deps?.onError === 'function' ? deps.onError : null;
 
   async function loadGltf(url) {
     if (receiver) {
@@ -128,7 +129,10 @@ export function createEditorViewport3D(canvasEl, deps = {}) {
           box.getCenter(center);
           model.position.sub(center);
           group.add(model);
-        }).catch((e) => console.warn('Failed to load model:', modelUrl, e));
+        }).catch((e) => {
+          console.warn('Failed to load model:', modelUrl, e);
+          onErrorCb?.(e);
+        });
       } else {
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4c4eef, roughness: 0.8, metalness: 0.4, wireframe: true }));
         group.add(mesh);

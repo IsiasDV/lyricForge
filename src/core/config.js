@@ -10,5 +10,5 @@ export const CLIENT_CONFIG = {
   MIN_LOADING_MS: 5000,    // minimum time the loading screen stays up
   BLACK_HOLD_MS: 1200,     // black screen hold before the fade-in
   FADE_IN_MS: 2000,        // fade from black into the map
-  ASSETS_BASE: '/',        // game asset host root (e.g. 'https://riseoflyric.com/'); relative asset paths like 'assets/x.glb' resolve against it
+  ASSETS_BASE: 'https://riseoflyric.com/', // game asset host root; relative asset paths like 'assets/x.glb' resolve against it
 };
