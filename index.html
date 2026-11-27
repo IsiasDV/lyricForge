@@ -58,10 +58,14 @@
         <option value="dead-behs-arcade">Dead Behs Arcade</option>
       </select>
       <div class="hint">Click palette to select • click canvas to paint • drag to pan • scroll to zoom</div>
+      <div class="row">
+        <button id="btn-download-assets">Download Assets</button>
+      </div>
       <div class="status">
         <div>Tile: <b id="status-tile">tiles.floor</b></div>
         <div>Grid: <b id="status-grid">on</b></div>
         <div>Zoom: <b id="status-zoom">1×</b></div>
+        <div>Assets: <b id="status-assets">idle</b></div>
       </div>
     </aside>
     <main id="main">
@@ -97,10 +101,23 @@
     import { createGrid, setGridVisible, setGridCellSize } from './src/editor/grid.js';
     import { createEditorView, panEditorView, zoomAtScreen, toggleEditorGrid, setEditorGridCellSize, screenToWorld } from './src/editor/view.js';
     import { collectMapObjects, objectTypes } from './src/editor/objects.js';
-    import { gameMapById, gameMaps } from './src/editor/game-maps.js';
+    import { gameMapById, gameMapSources, gameMaps } from './src/editor/game-maps.js';
+    import { createAssetsReceiver } from './src/core/assets.js';
 
     const canvas = document.getElementById('editor');
     const ctx = canvas.getContext('2d');
+
+    const assetsReceiver = createAssetsReceiver();
+    let assetStatus = 'idle';
+
+    function updateAssetStatus(frac) {
+      const el = document.getElementById('status-assets');
+      if (!el) return;
+      if (assetStatus === 'error') { el.textContent = 'error'; return; }
+      if (frac == null) { el.textContent = assetStatus; return; }
+      const pct = Math.round(frac * 100);
+      el.textContent = pct >= 100 ? 'ready' : `loading ${pct}%`;
+    }
 
     let map = createMap({ id: 'editor', name: 'Editor Map', width: 64, height: 64 });
     let selectedTile = TILE_PALETTE[3].id;
@@ -293,7 +310,7 @@
         if (!viewport3dReady) {
           try {
             const mod = await import('./src/editor/viewport-3d.js');
-            viewport3d = mod.createEditorViewport3D(canvas3);
+            viewport3d = mod.createEditorViewport3D(canvas3, { receiver: assetsReceiver, onProgress: (p) => updateAssetStatus(p) });
             viewport3dReady = true;
           } catch (e) {
             console.error('3D viewport unavailable:', e);
@@ -312,7 +329,7 @@
           // Recreate viewport after it was disposed (e.g. toggled back from 2d).
           try {
             const mod = await import('./src/editor/viewport-3d.js');
-            viewport3d = mod.createEditorViewport3D(canvas3);
+            viewport3d = mod.createEditorViewport3D(canvas3, { receiver: assetsReceiver, onProgress: (p) => updateAssetStatus(p) });
           } catch (e) {
             viewport3dReady = false;
             const errMsg = (e?.message ? String(e.message) : '') + (e?.stack ? ' :: ' + String(e.stack).split('\\n')[0] : '');
@@ -358,6 +375,30 @@
         if (!g) continue;
       }
       document.getElementById('status-zoom').textContent = '3D preview: ' + (viewport3d.placed ? viewport3d.placed.length : 0) + ' obj';
+    });
+
+    document.getElementById('btn-download-assets').addEventListener('click', async () => {
+      const sel = document.getElementById('game-map-select');
+      const gmap = gameMapById(sel.value);
+      const sources = gameMapSources(gmap);
+      const counts = {};
+      for (const t of ['images', 'models', 'sounds', 'music', 'json']) counts[t] = (sources?.[t] ?? []).length;
+      assetStatus = 'loading';
+      const el = document.getElementById('status-assets');
+      if (el) el.textContent = 'downloading…';
+      try {
+        const assets = await assetsReceiver.load(sources, {
+          onProgress: (p) => { assetStatus = 'loading'; if (el) el.textContent = p >= 1 ? 'ready' : 'loading ' + Math.round(p * 100) + '%'; },
+        });
+        const total = Object.values(assets).reduce((n, bucket) => n + Object.keys(bucket ?? {}).length, 0);
+        assetStatus = 'ready';
+        if (el) el.textContent = 'ready';
+        console.info('ASSETS_LOADED', { map: sel.value, counts, total });
+      } catch (e) {
+        assetStatus = 'error';
+        if (el) el.textContent = 'error';
+        console.warn('ASSETS_LOAD_FAILED', e);
+      }
     });
   </script>
   <!-- Non-module fallback: detects if the editor module failed to load entirely. -->

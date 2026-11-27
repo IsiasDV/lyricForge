@@ -6,6 +6,7 @@ import { fillTiles } from '../src/editor/map/fill.js';
 import { paintTile, eraseTile, TILE_PALETTE } from '../src/editor/map/tile-palette.js';
 import { createMap } from '../src/editor/map/map.js';
 import { collectMapObjects, objectTypes, objectMeshKind, OBJECT_KINDS } from '../src/editor/objects.js';
+import { ASSET_TYPES, collectAssetUrls, createAssetsReceiver, loadAssets, playAudio, resolveAssetUrl } from '../src/core/assets.js';
 
 const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
 
@@ -125,3 +126,59 @@ const assertClose = (a, b) => assert.ok(Math.abs(a - b) < 1e-9);
 }
 
 console.log('EDITOR_SMOKE_OK');
+
+// ---- assets receiver: url resolution / manifest flattening / download cache ----
+
+{
+  const BASE = 'https://riseoflyric.com/';
+  assert.equal(resolveAssetUrl('assets/map_night/map/map.glb', BASE), 'https://riseoflyric.com/assets/map_night/map/map.glb');
+  assert.equal(resolveAssetUrl('https://cdn.example.com/x.glb', BASE), 'https://cdn.example.com/x.glb');
+  assert.equal(resolveAssetUrl(null, BASE), null);
+
+  const flat = collectAssetUrls({
+    models: ['assets/map_night/map/map.glb', 'assets/map_night/map/map.glb', 'assets/general/Gun.glb'],
+    images: ['assets/map/night/loading/loading.jpg'],
+    sounds: ['assets/sfx/beh.mp3'],
+  }, BASE);
+  assert.deepEqual(Object.keys(flat), [...ASSET_TYPES]);
+  assert.equal(flat.models.length, 2);
+  assert.equal(flat.models[0].url, 'https://riseoflyric.com/assets/map_night/map/map.glb');
+  assert.equal(flat.models[1].url, 'https://riseoflyric.com/assets/general/Gun.glb');
+  assert.equal(flat.images.length, 1);
+  assert.equal(flat.sounds.length, 1);
+  assert.deepEqual(flat.music, []);
+  assert.deepEqual(flat.json, []);
+
+  const receiver = createAssetsReceiver({ baseUrl: BASE, fetchImpl: async () => { throw new Error('should not fetch'); } });
+  assert.equal(receiver.has('assets/map_night/map/map.glb', 'models'), false);
+  assert.equal(receiver.get('assets/map_night/map/map.glb', 'models'), null);
+
+  let fetched = 0;
+  const fetchImpl = async (url) => {
+    fetched += 1;
+    return { ok: true, status: 200, arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer };
+  };
+  const receiver2 = createAssetsReceiver({ baseUrl: BASE, fetchImpl });
+  let progressCalls = 0;
+  const assets = await receiver2.load({ models: ['assets/map_night/map/map.glb'] }, { onProgress: (p) => { progressCalls += 1; assert.ok(p >= 0 && p <= 1); } });
+  assert.equal(fetched, 1);
+  assert.equal(progressCalls, 1);
+  assert.ok(assets.models['https://riseoflyric.com/assets/map_night/map/map.glb']);
+  assert.equal(receiver2.has('assets/map_night/map/map.glb', 'models'), true);
+  assert.ok(receiver2.get('assets/map_night/map/map.glb', 'models'));
+
+  // cached: second load must not fetch again
+  const again = await receiver2.load({ models: ['assets/map_night/map/map.glb'] });
+  assert.equal(fetched, 1);
+  assert.ok(again.models['https://riseoflyric.com/assets/map_night/map/map.glb']);
+
+  // module-level helper honors an injected receiver
+  const viaHelper = await loadAssets({ models: ['assets/map_night/map/map.glb'] }, { receiver: receiver2 });
+  assert.ok(viaHelper.models['https://riseoflyric.com/assets/map_night/map/map.glb']);
+}
+
+{
+  // playAudio tolerates empty / unknown asset sets without throwing
+  assert.equal(playAudio({}, 'assets/sfx/beh.mp3'), null);
+  assert.equal(playAudio({ sounds: {} }, 'assets/sfx/beh.mp3'), null);
+}

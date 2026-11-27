@@ -4,8 +4,9 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { GLTFLoader } from '../vendor/GLTFLoader.js';
 import { objectMeshKind } from './objects.js';
+import { resolveAssetUrl } from '../../core/assets.js';
 
-export function createEditorViewport3D(canvasEl) {
+export function createEditorViewport3D(canvasEl, deps = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x11141a);
 
@@ -90,8 +91,22 @@ export function createEditorViewport3D(canvasEl) {
   function start() { if (animId == null) animId = requestAnimationFrame(animate); }
   function stop() { if (animId != null) { cancelAnimationFrame(animId); animId = null; } }
 
-  const loader = new GLTFLoader();
+  const loader = deps?.loader ?? new GLTFLoader();
+  const receiver = deps?.receiver ?? null;
+  const onProgressCb = typeof deps?.onProgress === 'function' ? deps.onProgress : null;
+
   async function loadGltf(url) {
+    if (receiver) {
+      // Assets receiver: download (or serve from cache) the model, then parse
+      // the cached GLB bytes locally instead of hot-loading from a remote url.
+      const assets = await receiver.load({ models: [url] }, { onProgress: onProgressCb });
+      const resolved = receiver.baseUrl ? resolveAssetUrl(url, receiver.baseUrl) : String(url);
+      const path = resolved.slice(0, Math.max(resolved.lastIndexOf('/') + 1, 0));
+      const buffer = assets?.models?.[resolved];
+      const gltf = buffer ? await loader.parseAsync(buffer, path) : null;
+      if (!gltf) throw new Error(`Asset receiver has no model payload for ${url}`);
+      return gltf;
+    }
     return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
   }
 
@@ -175,5 +190,5 @@ export function createEditorViewport3D(canvasEl) {
     scene.clear();
   }
 
-  return { scene, camera, renderer, resize, render, dispose, addObject, clearObjects, placed, start, stop, grid, axes };
+  return { scene, camera, renderer, resize, render, dispose, addObject, clearObjects, placed, start, stop, grid, axes, receiver, loader };
 }

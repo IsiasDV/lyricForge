@@ -1,5 +1,10 @@
 # Progress
 
+- **Run 41.** Implemented roadmap item `3.5` — assets receiver: `src/core/assets.js`
+  (resolve / collect / download-cached / play + `ASSET_TYPES`), wired into the editor
+  3D viewport (`src/editor/viewport-3d.js` receiver + `parseAsync` mount), per-map
+  source sets (`src/editor/game-maps.js` `gameMapSources`), and a "Download Assets"
+  button with progress status (`index.html`). Tests: `tests/editor-smoke.mjs`.
 - **Run 3.** Implemented roadmap item `1.1` — app shell + state store + event bus:
   `src/core/event-bus.js`, `src/core/store.js`, `src/main.js`.
 - **Run 4.** Implemented roadmap item `1.2` — localStorage autosave:
@@ -30,6 +35,6 @@
 
 ## Next run
 
-- Next run should pick the first unchecked item in `ROADMAP.md`: **2.3c6 Map
-  editor — canvas render / input binding for camera / grid** (needs canvas + editor
-  state).
+- Next run should pick the first unchecked item in `ROADMAP.md`: **3.3 3D viewport
+  grid + axes** (grid + axes now added in run 28; user-reported not visible — verify
+  in browser).

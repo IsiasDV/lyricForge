@@ -22,6 +22,7 @@
 - [x] **3.2 Game object inventory + placeholder mesh kinds** — `src/editor/objects.js`, `src/editor/viewport-3d.js`
 - [ ] **3.3 3D viewport grid + axes** — user-reported: no grid or axes visible yet (grid + axes now added; verify in browser)
 - [ ] **3.4 All editor buttons functional** — user-reported: buttons don't work yet (3D toggle now uses safe start/stop loop; verify)
+- [x] **3.5 Assets receiver (download + cache: models / level data / music / SFX / images) — editor renders from its own site** — `src/core/assets.js`, `src/editor/viewport-3d.js`, `src/editor/game-maps.js`, `index.html` (receiver wiring + "Download Assets" button)
 
 ## Game mod format
 
