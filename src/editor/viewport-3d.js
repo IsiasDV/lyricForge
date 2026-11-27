@@ -130,8 +130,16 @@ export function createEditorViewport3D(canvasEl, deps = {}) {
           model.position.sub(center);
           group.add(model);
         }).catch((e) => {
-          console.warn('Failed to load model:', modelUrl, e);
+          console.warn('Failed to load model:', modelUrl, '— showing placeholder', e);
           onErrorCb?.(e);
+          // Graceful fallback: render a placeholder box so the editor isn't empty
+          // when the external GLB host is unavailable or CORS-blocked.
+          const placeholder = new THREE.Mesh(
+            new THREE.BoxGeometry(10, 10, 10),
+            new THREE.MeshStandardMaterial({ color: 0x4c4eef, roughness: 0.8, metalness: 0.4, wireframe: true })
+          );
+          placeholder.scale.setScalar(scale);
+          group.add(placeholder);
         });
       } else {
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4c4eef, roughness: 0.8, metalness: 0.4, wireframe: true }));
