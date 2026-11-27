@@ -1,5 +1,9 @@
 # Progress
 
+- **Run 42.** Implemented roadmap item `3.3` — 3D viewport grid + axes: explicit
+  visibility flags on the `GridHelper` / `AxesHelper` in `src/editor/viewport-3d.js`
+  (grid + axes were added in run 28; flags now set explicitly). Visual check in browser
+  still pending for the user-reported invisibility.
 - **Run 41.** Implemented roadmap item `3.5` — assets receiver: `src/core/assets.js`
   (resolve / collect / download-cached / play + `ASSET_TYPES`), wired into the editor
   3D viewport (`src/editor/viewport-3d.js` receiver + `parseAsync` mount), per-map
@@ -35,6 +39,6 @@
 
 ## Next run
 
-- Next run should pick the first unchecked item in `ROADMAP.md`: **3.3 3D viewport
-  grid + axes** (grid + axes now added in run 28; user-reported not visible — verify
-  in browser).
+- Next run should pick the first unchecked item in `ROADMAP.md`: **3.4 All editor
+  buttons functional** — user-reported: buttons don't work yet (3D toggle now uses safe
+  start/stop loop; verify).

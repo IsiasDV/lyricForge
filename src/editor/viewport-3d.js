@@ -32,8 +32,10 @@ export function createEditorViewport3D(canvasEl, deps = {}) {
 
   const grid = new THREE.GridHelper(200, 100, 0x2a3060, 0x1a1f40);
   grid.position.y = 0.01;
+  grid.visible = true;
   scene.add(grid);
   const axes = new THREE.AxesHelper(10);
+  axes.visible = true;
   scene.add(axes);
 
   // Orbit controls (basic: left-drag orbit, right-drag pan, wheel zoom)
